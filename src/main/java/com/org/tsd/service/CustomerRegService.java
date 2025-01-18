@@ -162,7 +162,11 @@ public class CustomerRegService {
 	}
 
 	public void deleteAddress(Integer id) {
-		
+		try {
+			customerJDBCRepository.deleteAddress(id);
+		} catch (ApplicationException e) {
+			e.printStackTrace();
+		}
 	}
 	
 }

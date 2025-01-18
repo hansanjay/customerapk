@@ -27,7 +27,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600L)
-@RequestMapping("order")
+@RequestMapping("/order")
 public class OrderController {
 	
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
@@ -77,7 +77,7 @@ public class OrderController {
     public ResponseEntity<Order> create(HttpServletRequest request, @RequestBody Order order) {
     	String id =  request.getAttribute("_X_AUTH_ID").toString();
     	Integer cusId = Integer.valueOf(id);
-    	order.setCustomerId(cusId); 
+    	order.setCustomer_id(cusId); 
         return new ResponseEntity<>(orderService.create(order),HttpStatus.CREATED);
     }
 

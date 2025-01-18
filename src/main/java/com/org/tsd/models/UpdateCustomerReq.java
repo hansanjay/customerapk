@@ -14,8 +14,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UpdateCustomerReq{
     private String email;
-    private String firstName;
-    private String lastName;
+    private String first_name;
+    private String last_name;
     private boolean isDefault;
     private List<Address> addressList;
 }

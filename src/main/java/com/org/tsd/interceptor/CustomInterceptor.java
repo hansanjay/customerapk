@@ -37,7 +37,8 @@ public class CustomInterceptor implements HandlerInterceptor {
 		logger.info("Request received for :: " + request.getRequestURI());
 		
 		if(request.getRequestURI().contains("/otp")
-				|| request.getRequestURI().contains("/auth")) {
+				|| request.getRequestURI().contains("/auth")
+				|| request.getRequestURI().contains("/images/")) {
 			return true;
 		}else {
 			AuthResponse authResponse = customerAuthService.isAuthenticated(request);

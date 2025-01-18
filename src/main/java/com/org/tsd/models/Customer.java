@@ -15,11 +15,11 @@ import lombok.ToString;
 @ToString
 public class Customer{
     private int id;
-    private int distributorId;
+    private int distributor_id;
     private String mobile;
     private String email;
-    private String firstName;
-    private String lastName;
+    private String first_name;
+    private String last_name;
     private boolean active;
     private List<Address> addressList;
 }

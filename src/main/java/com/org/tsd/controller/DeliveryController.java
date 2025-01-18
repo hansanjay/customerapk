@@ -74,7 +74,7 @@ public class DeliveryController {
     @PostMapping
     public ResponseEntity<Order> create(HttpServletRequest request, @RequestBody Order order) {
         Integer cusId = (Integer) request.getAttribute("_X_AUTH_ID");
-        order.setCustomerId(cusId);
+        order.setCustomer_id(cusId);
         Order createdOrder = deliveryService.create(order);
         return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
     }

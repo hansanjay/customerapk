@@ -13,16 +13,16 @@ import lombok.ToString;
 @ToString
 public class Address{
 	private int id;
-    private int customerId;
+    private int customer_id;
     private String line1;
     private String line2;
     private String line3;
-    private String pinCode;
-    private String stateName;
+    private String pin_code;
+    private String state_name;
     private String country;
     private String city;
-    private String shortName;
-    private String geoTag;
-    private boolean isVerified;
-    private boolean isDefault;
+    private String short_name;
+    private String geo_tag;
+    private boolean is_verified;
+    private boolean is_default;
 }

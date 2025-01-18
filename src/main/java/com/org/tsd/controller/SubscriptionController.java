@@ -58,11 +58,12 @@ public class SubscriptionController {
     @PostMapping
     public ResponseEntity<Subscription> create(HttpServletRequest request, @RequestBody Subscription subscription){
         Integer cusId = (Integer) request.getAttribute("_X_AUTH_ID");
-        subscription.setCustomerId(cusId);
-        subscription.setParentId(null);
+        subscription.setCustomer_id(cusId);
+        subscription.setParent_id(null);
         subscription.setPermanent(true);
         subscription.setVisible(true);
-        return new ResponseEntity<>(subscriptionService.create(subscription), HttpStatus.OK);
+        subscription = subscriptionService.create(subscription);
+        return new ResponseEntity<>(subscription, HttpStatus.OK);
     }
 
     @PatchMapping("/{id}")
@@ -87,7 +88,8 @@ public class SubscriptionController {
         		subscriptionService.update(id, Map.of(
                         "status", 2,
                         "pause", subscription.getPause(),
-                        "resume", subscription.getResume()
+                        "resume", subscription.getResume(),
+                        "changeType","1"
                 )),
                 HttpStatus.OK
         );
@@ -101,7 +103,8 @@ public class SubscriptionController {
                         "status", 1,
                         "pause", null,
                         "resume", null,
-                        "visible", true
+                        "visible", true,
+                        "changeType","0"
                 )),
                 HttpStatus.OK
         );

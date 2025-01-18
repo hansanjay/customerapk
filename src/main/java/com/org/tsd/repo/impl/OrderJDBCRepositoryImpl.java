@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Repository;
 import com.org.tsd.exception.ApplicationException;
 import com.org.tsd.models.Order;
 import com.org.tsd.models.OrderLine;
+import com.org.tsd.models.Product;
 import com.org.tsd.models.ProductInCatalog;
 import com.org.tsd.models.Record;
 import com.org.tsd.models.Subscription;
@@ -41,102 +43,104 @@ public class OrderJDBCRepositoryImpl implements OrderJDBCRepository {
 	@Autowired
 	ProductJDBCRepository productJDBCRepository;
 	
-	@Autowired
-	DBHelper dbHelper;
-	
 	@Override
-	public List<Order> findOrderByOrderId(Integer id) throws ApplicationException {
-	
-		 try {
-	            List<Subscription> subscriptions = jdbcTemplate.query(SQLQuery.selActSub, BeanPropertyRowMapper.newInstance(Subscription.class),id);
-	            
-	            List<OrderLine> orderLines = jdbcTemplate.query(SQLQuery.selCusOrdLines, BeanPropertyRowMapper.newInstance(OrderLine.class),id);
-	            
-	            Map<Integer, List<OrderLine>> lines = new HashMap<>();
-	            for (OrderLine line : orderLines) {
-	                lines.computeIfAbsent(line.getOrderId(), k -> new ArrayList<>()).add(line);
-	            }
-	            
-				List<Order> orders = jdbcTemplate.query(SQLQuery.selCusOrd,BeanPropertyRowMapper.newInstance(Order.class),id);
-				
-				Date currentDate = Record.setToMidnight(new Date());
-	            
-		        if (!subscriptions.isEmpty()) {
-		            Subscription s = subscriptions.get(0);
-		            if (subscriptions.stream().anyMatch(sub -> sub.getType() == 1)) {
-		                for (int i = 1; i <= 30; i++) {
-		                	 int orderId = -(i + 1);
-		                    Date orderDate = addDay(currentDate, i);
-		                    Order order = orders.stream()
-		                    		.filter(o -> isEqual(o.getOrderDate(), orderDate))
-		                    		.findFirst()
-		                            .orElseGet(() -> new Order(orderId, s.getCustomerId(), s.getDistributorId(), orderId, orderDate, "U", null, null));
-		                    orders.add(order);
-		                }
-		            } else {
-		                List<String> daysOfWeek = new ArrayList<>();
-		                List<String> daysOfMonth = new ArrayList<>();
+	public List<Order> findOrderByOrderId(Integer custId) throws ApplicationException {
 
-		                for (Subscription sub : subscriptions) {
-		                    if (sub.getType() == 2) {
-		                        daysOfWeek.addAll(Arrays.asList(sub.getDayOfWeek().split(",")));
-		                    } else if (sub.getType() == 3) {
-		                        daysOfMonth.addAll(Arrays.asList(sub.getDayOfMonth().split(",")));
-		                    }
-		                }
+		try {
+			List<Subscription> subscriptions = jdbcTemplate.query(SQLQuery.selActSub,
+					BeanPropertyRowMapper.newInstance(Subscription.class), custId);
 
-		                for (int i = 1; i <= 30; i++) {
-		                    Date orderDate = addDay(currentDate, i);
-		                    String dayOfWeek = new SimpleDateFormat("u").format(orderDate);
-		                    String dayOfMon = new SimpleDateFormat("d").format(orderDate);
-		                    if (daysOfWeek.contains(dayOfWeek) || daysOfMonth.contains(dayOfMon)) {
-		                        if (orders.stream().noneMatch(o -> isEqual(o.getOrderDate(), orderDate))) {
-		                            orders.add(new Order(-(i + 1), s.getCustomerId(), s.getDistributorId(), i, orderDate, "U", null, null));
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		        
-		        for (Order o : orders) {
-		            if (lines.containsKey(o.getId())) {
-		                o.getLines().addAll(lines.get(o.getId()));
-		            }
+			List<OrderLine> orderLines = jdbcTemplate.query(SQLQuery.selCusOrdLines,
+					BeanPropertyRowMapper.newInstance(OrderLine.class), custId);
 
-		            String dayOfWeek = new SimpleDateFormat("u").format(o.getOrderDate());
-		            Pattern dayOfWeekPattern = Pattern.compile("^" + dayOfWeek + ",|," + dayOfWeek + "$|," + dayOfWeek + ",");
-		            String dayOfMon = new SimpleDateFormat("d").format(o.getOrderDate());
-		            Pattern dayOfMonPattern = Pattern.compile("^" + dayOfMon + ",|," + dayOfMon + "$|," + dayOfMon + ",");
+			Map<Integer, List<OrderLine>> lines = new HashMap<>();
+			for (OrderLine line : orderLines) {
+				lines.computeIfAbsent(line.getOrder_id(), k -> new ArrayList<>()).add(line);
+			}
 
-		            for (Subscription s : subscriptions) {
-		                if (s.isActiveOn(o.getOrderDate())) {
-		                    if (s.getType() == 1 || (s.getType() == 2 && dayOfWeekPattern.matcher(s.getDayOfWeek()).find()) ||
-		                            (s.getType() == 3 && dayOfMonPattern.matcher(s.getDayOfMonth()).find())) {
-		                        o.getSubscriptions().add(s);
-		                        o.getLines().add(new OrderLine(-(o.getLines().size() + 1), s.getProductId(), s.getQuantity(),
-		                                o.getId(), s.getId(), null));
-		                    }
-		                }
-		            }
-		        }
+			List<Order> orders = jdbcTemplate.query(SQLQuery.selCusOrd, BeanPropertyRowMapper.newInstance(Order.class),
+					custId);
 
-		        orders.removeIf(o -> o.getLines().isEmpty());
-		        
-				List<ProductInCatalog> products = productJDBCRepository.getProductListing(id).getProducts();
-				for (Order o : orders) {
-		            for (OrderLine ol : o.getLines()) {
-		                ol.setProduct(products.stream().filter(p -> p.getId() == ol.getProductId()).findFirst().orElse(null));
-		            }
+			Date currentDate = Record.setToMidnight(new Date());
+
+			if (!subscriptions.isEmpty()) {
+				Subscription s = subscriptions.get(0);
+				if (subscriptions.stream().anyMatch(sub -> sub.getType() == 1)) {
+					for (int i = 1; i <= 30; i++) {
+						int orderId = -(i + 1);
+						Date orderDate = addDay(currentDate, i);
+						Order order = orders.stream().filter(o -> isEqual(o.getOrderDate(), orderDate)).findFirst()
+								.orElseGet(() -> new Order(orderId, s.getCustomer_id(), s.getDistributor_id(), orderId,
+										orderDate, "U", null, null));
+						orders.add(order);
+					}
+				} else {
+					List<String> daysOfWeek = new ArrayList<>();
+					List<String> daysOfMonth = new ArrayList<>();
+
+					for (Subscription sub : subscriptions) {
+						if (sub.getType() == 2) {
+							daysOfWeek.addAll(Arrays.asList(sub.getDay_of_week().split(",")));
+						} else if (sub.getType() == 3) {
+							daysOfMonth.addAll(Arrays.asList(sub.getDay_of_month().split(",")));
+						}
+					}
+
+					for (int i = 1; i <= 30; i++) {
+						Date orderDate = addDay(currentDate, i);
+						String dayOfWeek = new SimpleDateFormat("u").format(orderDate);
+						String dayOfMon = new SimpleDateFormat("d").format(orderDate);
+						if (daysOfWeek.contains(dayOfWeek) || daysOfMonth.contains(dayOfMon)) {
+							if (orders.stream().noneMatch(o -> isEqual(o.getOrderDate(), orderDate))) {
+								orders.add(new Order(-(i + 1), s.getCustomer_id(), s.getDistributor_id(), i, orderDate,
+										"U", null, null));
+							}
+						}
+					}
+				}
+			}
+
+			for (Order o : orders) {
+				if (lines.containsKey(o.getId())) {
+					o.getLines().addAll(lines.get(o.getId()));
 				}
 
-		        return orders;
-	            
+				String dayOfWeek = new SimpleDateFormat("u").format(o.getOrderDate());
+				Pattern dayOfWeekPattern = Pattern
+						.compile("^" + dayOfWeek + ",|," + dayOfWeek + "$|," + dayOfWeek + ",");
+				String dayOfMon = new SimpleDateFormat("d").format(o.getOrderDate());
+				Pattern dayOfMonPattern = Pattern.compile("^" + dayOfMon + ",|," + dayOfMon + "$|," + dayOfMon + ",");
 
-	            
-		 }catch (Exception ex) {
-				throw new ApplicationException(0, "Failed to load order. " + ex.getMessage(),
-						HttpStatus.INTERNAL_SERVER_ERROR);
+				for (Subscription s : subscriptions) {
+					if (s.isActiveOn(o.getOrderDate())) {
+						if (s.getType() == 1 || (s.getType() == 2 && dayOfWeekPattern.matcher(s.getDay_of_week()).find())
+								|| (s.getType() == 3 && dayOfMonPattern.matcher(s.getDay_of_month()).find())) {
+							if (null != o.getSubscriptions() && o.getSubscriptions().size() > 0) {
+								o.getSubscriptions().add(s);
+								if (null != o.getLines() && o.getLines().size() > 0) {
+									o.getLines().add(new OrderLine(-(o.getLines().size() + 1), s.getProduct_id(),
+											s.getQuantity(), o.getId(), s.getId(), null));
+								}
+							}
+						}
+					}
+				}
 			}
+			//orders.removeIf(o -> o.getLines().isEmpty());
+
+			List<ProductInCatalog> products = productJDBCRepository.getProductListing(custId).getProducts();
+			for (Order o : orders) {
+				if (null != o.getLines()) {
+					for (OrderLine ol : o.getLines()) {
+						ol.setProduct(products.stream().filter(p -> p.getId() == ol.getProduct_id()).findFirst().orElse(null));
+					}
+				}
+			}
+			return orders;
+		} catch (Exception ex) {
+			throw new ApplicationException(0, "Failed to load order. " + ex.getMessage(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 
 	}
 
@@ -145,11 +149,11 @@ public class OrderJDBCRepositoryImpl implements OrderJDBCRepository {
 	public Order createOrder(Order order) throws ApplicationException, DataAccessException {
 		try {
 
-            int orderId = jdbcTemplate.update(SQLQuery.creOrder, order.getCustomerId(), dbHelper.toSQLDate(order.getOrderDate()));
+            int orderId = jdbcTemplate.update(SQLQuery.creOrder, order.getCustomer_id(), DBHelper.toSQLDate(order.getOrderDate()));
 
             order.setId(orderId);
             for (OrderLine orderLine : order.getLines()) {
-                jdbcTemplate.update(SQLQuery.creOrdLine, orderId, orderLine.getProductId(), orderLine.getQuantity());
+                jdbcTemplate.update(SQLQuery.creOrdLine, orderId, orderLine.getProduct_id(), orderLine.getQuantity());
             }
             return getById(orderId);
 
@@ -160,8 +164,8 @@ public class OrderJDBCRepositoryImpl implements OrderJDBCRepository {
         }
 	}
 
-	
-	private Order getById(int orderId) throws ApplicationException {
+	@Override
+	public Order getById(int orderId) throws ApplicationException {
 		try {
 			
             Order order = jdbcTemplate.queryForObject(SQLQuery.selOrd,BeanPropertyRowMapper.newInstance(Order.class),orderId);
@@ -178,19 +182,19 @@ public class OrderJDBCRepositoryImpl implements OrderJDBCRepository {
             String dayOfMon = new SimpleDateFormat("d").format(order.getOrderDate());
             String dayOfMonPattern = "^" + dayOfMon + ",|," + dayOfMon + "$|," + dayOfMon + ",";
 
-            List<Subscription> subscriptions = jdbcTemplate.query(SQLQuery.selSubLines, BeanPropertyRowMapper.newInstance(Subscription.class), new Object[]{order.getCustomerId(), dayOfMonPattern, dayOfWeekPattern});
+            List<Subscription> subscriptions = jdbcTemplate.query(SQLQuery.selSubLines, BeanPropertyRowMapper.newInstance(Subscription.class), new Object[]{order.getCustomer_id(), dayOfMonPattern, dayOfWeekPattern});
             order.setSubscriptions(subscriptions);
 
             // Add subscription information to order lines
             int i = -1;
             for (Subscription s : subscriptions) {
-                order.getLines().add(new OrderLine(i--, s.getProductId(), s.getQuantity(), order.getId(), s.getId(), null));
+                order.getLines().add(new OrderLine(i--, s.getProduct_id(), s.getQuantity(), order.getId(), s.getId(), null));
             }
 
  
-			List<ProductInCatalog> products = productJDBCRepository.getProductListing(order.getCustomerId()).getProducts();
+			List<ProductInCatalog> products = productJDBCRepository.getProductListing(order.getCustomer_id()).getProducts();
 	            for (OrderLine ol : order.getLines()) {
-	                ol.setProduct(products.stream().filter(p -> p.getId() == ol.getProductId()).findFirst().orElse(null));
+	                ol.setProduct(products.stream().filter(p -> p.getId() == ol.getProduct_id()).findFirst().orElse(null));
 	            }
 			
             return order;
@@ -253,6 +257,37 @@ public class OrderJDBCRepositoryImpl implements OrderJDBCRepository {
             throw new ApplicationException(0, "Failed to delete subscription. " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 		
+	}
+	
+	@Override
+	public OrderLine getOrderLine(Integer cusId, Integer orderId, Integer lineId) throws ApplicationException {
+		try {
+			OrderLine orderLine = jdbcTemplate.queryForObject(SQLQuery.selOrdLine,BeanPropertyRowMapper.newInstance(OrderLine.class), orderId,lineId);
+
+			if (orderLine == null) {
+				throw new ApplicationException(0,
+						String.format("Unable to find Order Line with orderId %d and lineId %d", orderId, lineId),
+						HttpStatus.BAD_REQUEST);
+			}
+
+			List<ProductInCatalog> products = productJDBCRepository.getProductListing(cusId).getProducts();
+			for (Product product : products) {
+				if (product.getId().equals(orderLine.getProduct_id())) {
+					orderLine.setProduct(product);
+					break;
+				}
+			}
+			return orderLine;
+
+		} catch (EmptyResultDataAccessException e) {
+			throw new ApplicationException(0,
+					String.format("Unable to find Order Line with orderId %d and lineId %d", orderId, lineId),
+					HttpStatus.BAD_REQUEST);
+		} catch (Exception ex) {
+			throw new ApplicationException(0, "Failed to load Order Line. " + ex.getMessage(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 	}
 
 

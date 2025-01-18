@@ -21,7 +21,6 @@ public class SubscriptionService {
 		try {
 			return subscriptionJDBCRepository.list(cusId);
 		} catch (ApplicationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;
@@ -29,7 +28,7 @@ public class SubscriptionService {
 
 	public Subscription getById(Integer id) {
 		try {
-			subscriptionJDBCRepository.getById(id);
+			return subscriptionJDBCRepository.getById(id);
 		} catch (ApplicationException e) {
 			e.printStackTrace();
 		}
@@ -38,7 +37,7 @@ public class SubscriptionService {
 
 	public Subscription create(Subscription subscription) {
 		try {
-			subscriptionJDBCRepository.create(subscription);
+			return subscriptionJDBCRepository.create(subscription);
 		} catch (ApplicationException | SQLException e) {
 			e.printStackTrace();
 		}

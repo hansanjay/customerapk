@@ -22,18 +22,18 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Subscription extends Record {
     private int id;
-    private int customerId;
+    private int customer_id;
     private int quantity;
-    private int distributorId;
-    private int productId;
+    private int distributor_id;
+    private int product_id;
     private int type;
     private int status;
-    private Integer parentId;
+    private Integer parent_id;
     private boolean permanent;
     private boolean visible;
 
-    private String dayOfWeek;
-    private String dayOfMonth;
+    private String day_of_week;
+    private String day_of_month;
 
     private Date start;
     private Date stop;
@@ -44,15 +44,15 @@ public class Subscription extends Record {
     
     public Subscription(Subscription s, Map<String,Object> m) {
         super();
-        this.customerId = s.getCustomerId();
+        this.customer_id = s.getCustomer_id();
         quantity = s.getQuantity();
-        distributorId = s.getDistributorId();
-        productId = s.getProduct().getId();
+        distributor_id = s.getDistributor_id();
+        product_id = s.getProduct_id();
         type = s.type;
         status = 1;
-        parentId = s.id;
-        dayOfWeek = s.getDayOfWeek();
-        dayOfMonth = s.getDayOfMonth();
+        parent_id = s.id;
+        day_of_week = s.getDay_of_week();
+        day_of_month = s.getDay_of_month();
         permanent = false;
         visible = true;
         setProperties(m, true);
@@ -72,7 +72,7 @@ public class Subscription extends Record {
     
     public void setDayOfWeek(String dayOfWeek) throws ApplicationException {
         if (dayOfWeek == null || dayOfWeek.matches("^[1-7](,[1-7]){0,6}$")) {
-            this.dayOfWeek = dayOfWeek;
+            this.day_of_week = dayOfWeek;
         } else {
             throw new ApplicationException(0, "Invalid day of week value", HttpStatus.BAD_REQUEST);
         }
@@ -80,7 +80,7 @@ public class Subscription extends Record {
 
     public void setDayOfMonth(String dayOfMonth) throws ApplicationException {
         if (dayOfMonth == null || dayOfMonth.matches("^([1-9]|[12][0-9]|3[01])(,([1-9]|[12][0-9]|3[01])){0,30}$")) {
-            this.dayOfMonth = dayOfMonth;
+            this.day_of_month = dayOfMonth;
         } else {
             throw new ApplicationException(0, "Invalid day of month value", HttpStatus.BAD_REQUEST);
         }

@@ -38,7 +38,7 @@ public class DeliveryJDBCRepositoryImpl implements DeliveryJDBCRepository {
 	                .collect(Collectors.toList());
 
 	        Map<Integer, List<OrderLine>> linesByOrderId = orderLines.stream()
-	                .collect(Collectors.groupingBy(OrderLine::getOrderId));
+	                .collect(Collectors.groupingBy(OrderLine::getOrder_id));
 
 	        List<Map<String, Object>> orderRows = jdbcTemplate.queryForList(SQLQuery.selCusDel, id);
 	        List<Order> orders = orderRows.stream()
@@ -58,7 +58,7 @@ public class DeliveryJDBCRepositoryImpl implements DeliveryJDBCRepository {
 	            order.getLines().forEach(line -> 
 	                line.setProduct(
 	                    products.stream()
-	                            .filter(product -> product.getId().equals(line.getProductId()))
+	                            .filter(product -> product.getId().equals(line.getProduct_id()))
 	                            .findFirst()
 	                            .orElse(null)
 	                )
@@ -82,10 +82,10 @@ public class DeliveryJDBCRepositoryImpl implements DeliveryJDBCRepository {
 	        List<OrderLine> orderLines = jdbcTemplate.query(SQLQuery.selCusOrdLines, BeanPropertyRowMapper.newInstance(OrderLine.class),id);
 	        order.setLines(orderLines);
 
-	        List<ProductInCatalog> products = productInCatalogService.getProductListing(order.getCustomerId()).getProducts();
+	        List<ProductInCatalog> products = productInCatalogService.getProductListing(order.getCustomer_id()).getProducts();
 	        for (OrderLine ol : orderLines) {
 	            Product product = products.stream()
-	                .filter(p -> p.getId().equals(ol.getProductId()))
+	                .filter(p -> p.getId().equals(ol.getProduct_id()))
 	                .findFirst()
 	                .orElse(null);
 	            ol.setProduct(product);
@@ -111,7 +111,7 @@ public class DeliveryJDBCRepositoryImpl implements DeliveryJDBCRepository {
 	        List<ProductInCatalog> products = productInCatalogService.getProductListing(cusId).getProducts();
 
 	        Product product = products.stream()
-	            .filter(p -> p.getId().equals(orderLine.getProductId()))
+	            .filter(p -> p.getId().equals(orderLine.getProduct_id()))
 	            .findFirst()
 	            .orElse(null);
 	        orderLine.setProduct(product);

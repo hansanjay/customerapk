@@ -62,7 +62,7 @@ public class CustomerJDBCRepositoryImpl implements CustomerJDBCRepository {
 		try {
 			Customer customer = findCustomerById(cusId);
 			if(null != customer) {
-				int var = jdbcTemplate.update(SQLQuery.updCustProfile,updateReq.getEmail(),updateReq.getFirstName(),updateReq.getLastName(),cusId);
+				int var = jdbcTemplate.update(SQLQuery.updCustProfile,updateReq.getEmail(),updateReq.getFirst_name(),updateReq.getLast_name(),cusId);
 				if (0 == var) 
 					throw new ApplicationException(0, "Invalid application user", HttpStatus.BAD_REQUEST);
 			}
@@ -76,7 +76,7 @@ public class CustomerJDBCRepositoryImpl implements CustomerJDBCRepository {
 	@Override
 	public Customer updateAddress(Integer cusId, Address address) throws ApplicationException {
 	 try {
-		 jdbcTemplate.update(SQLQuery.updCustAddress,address.getShortName(), address.getLine1(), address.getLine2(), address.getLine3(),address.getCity(), address.getStateName(), address.getCountry(), address.getPinCode(),address.getGeoTag(), address.isDefault(), cusId, address.getId());
+		 jdbcTemplate.update(SQLQuery.updCustAddress,address.getShort_name(), address.getLine1(), address.getLine2(), address.getLine3(),address.getCity(), address.getState_name(), address.getCountry(), address.getPin_code(),address.getGeo_tag(), address.is_default(), cusId, address.getId());
 		 return findCustomerById(cusId);
 	 } catch (Exception ex) {
             logger.error("Failed to update Order. " +ex.getMessage());
@@ -87,12 +87,23 @@ public class CustomerJDBCRepositoryImpl implements CustomerJDBCRepository {
 	@Override
 	public Customer createAddress(Integer cusId, Address address) throws ApplicationException {
 		try {
-			jdbcTemplate.update(SQLQuery.creCusAdd, address.getShortName(), address.getLine1(), address.getLine2(), address.getLine3(),
-                    address.getCity(), address.getStateName(), address.getCountry(), address.getPinCode(),address.getGeoTag(), address.isDefault());
+			jdbcTemplate.update(SQLQuery.creCusAdd,cusId, address.getShort_name(), address.getLine1(), address.getLine2(), address.getLine3(),
+                    address.getCity(), address.getState_name(), address.getCountry(), address.getPin_code(),address.getGeo_tag(), address.is_default());
 			return findCustomerById(cusId);
 		} catch (Exception ex) {
 			logger.error("Failed to update Order. " + ex.getMessage());
 			throw new ApplicationException(0, "Failed to update order. $ex.message", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	public void deleteAddress(Integer id) throws ApplicationException {
+		try {
+	        String sql = "DELETE FROM address WHERE id = ?";
+	        jdbcTemplate.update(sql, id);
+	    } catch (Exception ex) {
+	        logger.error("Failed to delete address.", ex);
+	        throw new ApplicationException(0, "Failed to delete address. " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+	    }		
 	}
 }

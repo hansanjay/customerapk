@@ -13,7 +13,6 @@ import com.org.tsd.exception.ApplicationException;
 import com.org.tsd.models.Order;
 import com.org.tsd.models.OrderLine;
 import com.org.tsd.repo.OrderJDBCRepository;
-import com.org.tsd.repo.OrderLineJDBCRepository;
 
 @Service
 public class OrderService{
@@ -25,16 +24,20 @@ public class OrderService{
     @Autowired
     private OrderJDBCRepository orderJDBCRepository;
     
-    private OrderLineJDBCRepository orderLineJDBCRepository;
-
 	public Order getById(Integer id) {
 		// TODO Auto-generated method stub
+		try {
+			return orderJDBCRepository.getById(id);
+		} catch (ApplicationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return null;
 	}
 
 	public OrderLine getOrderLine(Integer cusId, Integer id, Integer lineId) {
 		try {
-			return orderLineJDBCRepository.getByOrderLine(cusId,id,lineId);
+			return orderJDBCRepository.getOrderLine(cusId,id,lineId);
 		} catch (ApplicationException e) {
 			e.printStackTrace();
 		}

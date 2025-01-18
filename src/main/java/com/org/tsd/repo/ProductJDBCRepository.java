@@ -6,7 +6,7 @@ import com.org.tsd.models.ProductListing;
 
 public interface ProductJDBCRepository {
 
-	ProductListing getProductListing(Integer cusId) throws ApplicationException;
+	ProductListing getProductListing(int custId) throws ApplicationException;
 
 	ProductInCatalog getProductById(Integer cusId, Integer id) throws ApplicationException;
 

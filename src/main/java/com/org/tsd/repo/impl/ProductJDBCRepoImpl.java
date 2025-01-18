@@ -43,7 +43,7 @@ public class ProductJDBCRepoImpl implements ProductJDBCRepository {
     }
 
 	@Override
-	public ProductListing getProductListing(Integer cusId) throws ApplicationException {
+	public ProductListing getProductListing(int cusId) throws ApplicationException {
 		try {
             int catalogId = getCatalogId(cusId);
             List<ProductInCatalog> products = jdbcTemplate.query(SQLQuery.selPrd,BeanPropertyRowMapper.newInstance(ProductInCatalog.class), catalogId);
@@ -77,6 +77,5 @@ public class ProductJDBCRepoImpl implements ProductJDBCRepository {
 	                0, "Failed to load product. " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 	    }
 	}
-
 
 }

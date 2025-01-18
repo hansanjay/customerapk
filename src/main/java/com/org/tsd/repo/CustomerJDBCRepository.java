@@ -11,4 +11,5 @@ public interface CustomerJDBCRepository {
 	Customer updateCust(Integer cusId, UpdateCustomerReq updateReq) throws ApplicationException;
 	Customer updateAddress(Integer cusId, Address address) throws ApplicationException;
 	Customer createAddress(Integer cusId, Address address) throws ApplicationException;
+	void deleteAddress(Integer id) throws ApplicationException;
 }
