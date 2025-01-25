@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import com.org.tsd.exception.ApplicationException;
@@ -101,6 +103,7 @@ public class SubscriptionJDBCRepositoryImpl implements SubscriptionJDBCRepositor
 
 	@Override
 	public Subscription create(Subscription s) throws ApplicationException, SQLException {
+		KeyHolder keyHolder = new GeneratedKeyHolder();
 		int id = jdbcTemplate.update(connection -> {
 			PreparedStatement ps = connection.prepareStatement(SQLQuery.creSub, new String[] { "id" });
 			ps.setInt(1, s.getCustomer_id());
@@ -112,7 +115,7 @@ public class SubscriptionJDBCRepositoryImpl implements SubscriptionJDBCRepositor
 			ps.setString(7, s.getDay_of_month());
 			ps.setInt(8, s.getStatus());
 			ps.setDate(9, new java.sql.Date(s.getStart().getTime()));
-			ps.setDate(10, new java.sql.Date(s.getStart().getTime()));
+			ps.setDate(10, null);
 			ps.setBoolean(11, s.isPermanent());
 			ps.setBoolean(12, s.isVisible());
 			if(null != s.getParent_id()) {
@@ -121,8 +124,11 @@ public class SubscriptionJDBCRepositoryImpl implements SubscriptionJDBCRepositor
 				ps.setInt(13, 0);
 			}
 			return ps;
-		});
-		s.setId(id);
+		},keyHolder);
+		//s.setId(id);
+		if (id == 1) {
+	        s.setId(keyHolder.getKey().intValue());
+	    }
 		return s;
 	}
 

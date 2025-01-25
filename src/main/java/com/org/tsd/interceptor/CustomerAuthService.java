@@ -7,18 +7,15 @@ import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.org.tsd.models.AuthResponse;
-import com.org.tsd.models.Credentials;
-import com.org.tsd.models.OTPDetails;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -31,19 +28,17 @@ public class CustomerAuthService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(CustomerAuthService.class);
 	
-	private static ConcurrentHashMap<String,OTPDetails> otpStorage = new ConcurrentHashMap<>();
-	
-	@Autowired
-	private SecurityHelper helper;
+	@Value("${user.auth.secret.key}")
+	private String secretKey;
 	
 	@Scheduled(fixedDelay = 60000L)
     public void clearExpiredOTPs() {
-        otpStorage.forEach((key, value) -> {
-            if (!value.getRequest().isValid()) {
-                otpStorage.remove(key);
-                System.out.println("Removed expired OTP for key: " + key);
-            }
-        });
+//        otpStorage.forEach((key, value) -> {
+//            if (!value.getRequest().isValid()) {
+//                otpStorage.remove(key);
+//                System.out.println("Removed expired OTP for key: " + key);
+//            }
+//        });
     }
 	
 	public AuthResponse isAuthenticated(HttpServletRequest request) {
@@ -115,10 +110,9 @@ public class CustomerAuthService {
 
         // Lookup credentials using the subject field from the payload
         String subject = payloadData.get("sub").toString();
-        Credentials credentials = helper.lookupCredentials(subject);
 
         // Create the signing key
-        Key key = Keys.hmacShaKeyFor(credentials.getClientSecret().getBytes());
+        Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
 
         // Parse and verify the JWT
         return Jwts.parserBuilder()

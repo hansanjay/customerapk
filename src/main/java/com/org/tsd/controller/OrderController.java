@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.org.tsd.config.AppConfig;
 import com.org.tsd.models.Order;
 import com.org.tsd.models.OrderLine;
 import com.org.tsd.service.OrderService;
@@ -31,9 +30,6 @@ import jakarta.servlet.http.HttpServletRequest;
 public class OrderController {
 	
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
-
-    @Autowired
-    private AppConfig config;
 
     @Autowired
     private OrderService orderService;

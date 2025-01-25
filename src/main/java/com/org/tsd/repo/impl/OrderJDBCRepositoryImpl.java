@@ -18,6 +18,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import com.org.tsd.exception.ApplicationException;
@@ -32,6 +34,8 @@ import com.org.tsd.repo.ProductJDBCRepository;
 import com.org.tsd.service.DBHelper;
 import com.org.tsd.utils.SQLQuery;
 
+import lombok.SneakyThrows;
+
 @Repository
 public class OrderJDBCRepositoryImpl implements OrderJDBCRepository {
 	
@@ -44,6 +48,7 @@ public class OrderJDBCRepositoryImpl implements OrderJDBCRepository {
 	ProductJDBCRepository productJDBCRepository;
 	
 	@Override
+	@SneakyThrows
 	public List<Order> findOrderByOrderId(Integer custId) throws ApplicationException {
 
 		try {
@@ -146,17 +151,19 @@ public class OrderJDBCRepositoryImpl implements OrderJDBCRepository {
 
 
 	@Override
+	@SneakyThrows
 	public Order createOrder(Order order) throws ApplicationException, DataAccessException {
 		try {
-
-            int orderId = jdbcTemplate.update(SQLQuery.creOrder, order.getCustomer_id(), DBHelper.toSQLDate(order.getOrderDate()));
-
-            order.setId(orderId);
-            for (OrderLine orderLine : order.getLines()) {
-                jdbcTemplate.update(SQLQuery.creOrdLine, orderId, orderLine.getProduct_id(), orderLine.getQuantity());
+			KeyHolder keyHolder = new GeneratedKeyHolder();
+            int orderId = jdbcTemplate.update(SQLQuery.creOrder, order.getCustomer_id(), DBHelper.toSQLDate(order.getOrderDate()),keyHolder);
+            
+            if(orderId == 1) {
+            	order.setId(keyHolder.getKey().intValue());
+            	for (OrderLine orderLine : order.getLines()) {
+                    jdbcTemplate.update(SQLQuery.creOrdLine, orderId, orderLine.getProduct_id(), orderLine.getQuantity());
+                }
             }
             return getById(orderId);
-
         } catch (DataAccessException ex) {
             logger.error("Failed to create order.", ex);
             throw new ApplicationException(0, "Failed to create order. " + ex.getMessage(),
@@ -165,6 +172,7 @@ public class OrderJDBCRepositoryImpl implements OrderJDBCRepository {
 	}
 
 	@Override
+	@SneakyThrows
 	public Order getById(int orderId) throws ApplicationException {
 		try {
 			

@@ -1,7 +1,8 @@
 package com.org.tsd.utils;
 
 public class SQLQuery {
-	public static final String selAppUserWithMobile = "SELECT * FROM CUSTOMER WHERE EMAIL = ? OR MOBILE = ?",
+	public static final String selAppUserWithMobile = "SELECT * FROM TSD.USER WHERE MOBILE = ?",
+	updateAppUserWithMobile = "UPDATE TSD.USER SET OTP = ? WHERE ID = ?",
 	selAppUserWithId = "SELECT * FROM CUSTOMER WHERE ID = ?",
 	selCusAdd = "SELECT * FROM ADDRESS WHERE CUSTOMER_ID=?",
 	updCustProfile = "UPDATE CUSTOMER SET EMAIL = ?, FIRST_NAME = ?, LAST_NAME = ? WHERE ID = ?",

@@ -14,6 +14,7 @@ import com.org.tsd.exception.ApplicationException;
 import com.org.tsd.models.Address;
 import com.org.tsd.models.Customer;
 import com.org.tsd.models.UpdateCustomerReq;
+import com.org.tsd.models.User;
 import com.org.tsd.repo.CustomerJDBCRepository;
 import com.org.tsd.utils.SQLQuery;
 
@@ -26,12 +27,12 @@ public class CustomerJDBCRepositoryImpl implements CustomerJDBCRepository {
 	private JdbcTemplate jdbcTemplate;
 
 	@Override
-	public Customer findCustomer(String principle) throws ApplicationException {
+	public User findCustomer(String principle) throws ApplicationException {
 		try {
-			Customer customer = jdbcTemplate.queryForObject(SQLQuery.selAppUserWithMobile,BeanPropertyRowMapper.newInstance(Customer.class), principle, principle);
-			if (null == customer) 
+			User user = jdbcTemplate.queryForObject(SQLQuery.selAppUserWithMobile,BeanPropertyRowMapper.newInstance(User.class), principle);
+			if (null == user) 
 				throw new ApplicationException(0, "Invalid application user", HttpStatus.BAD_REQUEST);
-			return customer;
+			return user;
 		} catch (Exception e) {
 			logger.error("Database failure", e);
             throw new ApplicationException(0, "Failed to find application user. $ex.message",HttpStatus.INTERNAL_SERVER_ERROR);
@@ -105,5 +106,10 @@ public class CustomerJDBCRepositoryImpl implements CustomerJDBCRepository {
 	        logger.error("Failed to delete address.", ex);
 	        throw new ApplicationException(0, "Failed to delete address. " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 	    }		
+	}
+
+	@Override
+	public int updateCust(String userId, String otp) {
+		return jdbcTemplate.update(SQLQuery.updateAppUserWithMobile,otp,Long.parseLong(userId));
 	}
 }

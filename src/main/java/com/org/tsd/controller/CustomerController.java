@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.org.tsd.config.AppConfig;
 import com.org.tsd.models.Address;
 import com.org.tsd.models.Customer;
 import com.org.tsd.models.UpdateCustomerReq;
@@ -29,9 +28,6 @@ import jakarta.servlet.http.HttpServletRequest;
 class CustomerController {
 
     private static Logger logger = LoggerFactory.getLogger(CustomerController.class);
-
-    @Autowired
-    AppConfig config;
 
     @Autowired
 	CustomerRegService customerRegService;

@@ -25,12 +25,6 @@ public class CustomInterceptor implements HandlerInterceptor {
     @Autowired
     private ObjectMapper mapper;
 
-//    @Override
-//    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-//        System.out.println("Interceptor triggered for URI: " + request.getRequestURI());
-//        return true;
-//    }
-    
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
 		
