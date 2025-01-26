@@ -68,7 +68,7 @@ public class SubscriptionController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<Subscription> update(@PathVariable Integer id, @RequestBody Map<String, Object> modReq){
-        return new ResponseEntity<>(subscriptionService.update(id, modReq), HttpStatus.OK);
+        return new ResponseEntity<>(subscriptionService.resume(id, modReq), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -85,7 +85,7 @@ public class SubscriptionController {
             throw new ApplicationException(0, "Invalid pause or resume dates.", HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(
-        		subscriptionService.update(id, Map.of(
+        		subscriptionService.pause(id, Map.of(
                         "status", 2,
                         "pause", subscription.getPause(),
                         "resume", subscription.getResume(),
@@ -95,14 +95,14 @@ public class SubscriptionController {
         );
     }
 
-    @GetMapping("/{id}/resume")
+    @PatchMapping("/{id}/resume")
     public ResponseEntity<Subscription> resume(@PathVariable Integer id){
-    	subscriptionService.delete(id);
+    	subscriptionService.removeChildren(id);
         return new ResponseEntity<>(
-        		subscriptionService.update(id, Map.of(
+        		subscriptionService.resume(id, Map.of(
                         "status", 1,
-                        "pause", null,
-                        "resume", null,
+                        "pause", "null",
+                        "resume", "null",
                         "visible", true,
                         "changeType","0"
                 )),

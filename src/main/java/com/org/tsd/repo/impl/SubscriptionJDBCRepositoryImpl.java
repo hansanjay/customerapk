@@ -29,6 +29,8 @@ import com.org.tsd.repo.ProductJDBCRepository;
 import com.org.tsd.repo.SubscriptionJDBCRepository;
 import com.org.tsd.utils.SQLQuery;
 
+import lombok.SneakyThrows;
+
 @Repository
 public class SubscriptionJDBCRepositoryImpl implements SubscriptionJDBCRepository {
 
@@ -133,7 +135,8 @@ public class SubscriptionJDBCRepositoryImpl implements SubscriptionJDBCRepositor
 	}
 
 	@Override
-	public Subscription update(Integer id, Map<String, Object> m) throws ApplicationException {
+	@SneakyThrows
+	public Subscription pause(Integer id, Map<String, Object> m) throws ApplicationException {
 		try {
 			Subscription s1 = null;
 			Subscription s = getById(id);
@@ -163,7 +166,7 @@ public class SubscriptionJDBCRepositoryImpl implements SubscriptionJDBCRepositor
 			updMap.put("visible", Integer.parseInt(m.get("changeType").toString()) != 2);
 
 			// Construct the update SQL query dynamically
-			StringBuilder updateSql = new StringBuilder("UPDATE SUBSCRIPTION SET ");
+			StringBuilder updateSql = new StringBuilder("UPDATE tsd.SUBSCRIPTION SET ");
 			String[] keys = updMap.keySet().toArray(new String[0]);
 			String setClause = String.join(", ", Arrays.stream(keys).map(k -> k + " = ?").toArray(String[]::new));
 			updateSql.append(setClause).append(" WHERE ID = ?");
@@ -183,8 +186,22 @@ public class SubscriptionJDBCRepositoryImpl implements SubscriptionJDBCRepositor
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+	@Override
+	@SneakyThrows
+	public Subscription resume(Integer id, Map<String, Object> m) throws ApplicationException {
+		try {
+			jdbcTemplate.update("UPDATE tsd.SUBSCRIPTION SET resume=null,visible =true,pause=null,status=1 WHERE ID = ?",id);
+			return getById(id);
+		} catch (DataAccessException ex) {
+			logger.error("Failed to update subscription", ex);
+			throw new ApplicationException(0, "Failed to update subscription. " + ex.getMessage(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
 	@Override
+	@SneakyThrows
 	public void delete(Integer id) throws ApplicationException {
 		try {
 			String deleteSql = "DELETE FROM subscription WHERE id = ?";
@@ -195,5 +212,21 @@ public class SubscriptionJDBCRepositoryImpl implements SubscriptionJDBCRepositor
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+	@SneakyThrows
+	@Override
+	public void removeChildren(Integer id) {
+        String sql = "DELETE FROM subscription WHERE parent_id = ?";
+        try {
+            jdbcTemplate.update(sql, id);
+        } catch (Exception ex) {
+            logger.error("Failed to delete subscription.", ex);
+            throw new ApplicationException(
+                0, 
+                "Failed to delete subscription. " + ex.getMessage(), 
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
 
 }

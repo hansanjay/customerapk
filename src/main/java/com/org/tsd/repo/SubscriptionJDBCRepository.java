@@ -15,8 +15,12 @@ public interface SubscriptionJDBCRepository {
 
 	Subscription create(Subscription subscription) throws ApplicationException, SQLException;
 
-	Subscription update(Integer id, Map<String, Object> modReq) throws ApplicationException;
+	Subscription resume(Integer id, Map<String, Object> modReq) throws ApplicationException;
 
 	void delete(Integer id) throws ApplicationException;
+	
+	void removeChildren(Integer id);
+
+	Subscription pause(Integer id, Map<String, Object> m) throws ApplicationException;
 
 }

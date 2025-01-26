@@ -52,12 +52,25 @@ public class SubscriptionService {
 		}
 	}
 
-	public Subscription update(Integer id, Map<String, Object> of) {
+	public Subscription pause(Integer id, Map<String, Object> of) {
 		try {
-			return subscriptionJDBCRepository.update(id, of);
+			return subscriptionJDBCRepository.pause(id, of);
 		} catch (ApplicationException e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public Subscription resume(Integer id, Map<String, Object> of) {
+		try {
+			return subscriptionJDBCRepository.pause(id, of);
+		} catch (ApplicationException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public void removeChildren(Integer id) {
+		subscriptionJDBCRepository.removeChildren(id);
 	}
 }
